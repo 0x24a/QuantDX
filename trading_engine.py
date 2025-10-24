@@ -71,6 +71,9 @@ class TradingEngine:
         return 0.0
     
     def close_position(self, pair: str):
+        self._log(f"Cancelling unfilled TP/SL orders for {pair}")
+        cancel_result = self.trade_api.cancel_order(instId=pair)
+        self._log(f"Cancelled unfilled TP/SL orders for {pair} with response: {cancel_result}")
         data = self.trade_api.close_positions(pair, "isolated", ccy="USDT")
         self._log(f"Closed position {pair} with response: {data}")
         return data
