@@ -71,15 +71,18 @@ class TradingEngine:
         return 0.0
     
     def close_position(self, pair: str):
-        return self.trade_api.close_positions(pair, "isolated", ccy="USDT")
+        data = self.trade_api.close_positions(pair, "isolated", ccy="USDT")
+        self._log(f"Closed position {pair} with response: {data}")
+        return data
     
     def open_position(self, pair: str, side: str, amount: float, lever: float, tp: float, sl: float):
-        self.account_api.set_leverage(
+        result = self.account_api.set_leverage(
             instId=pair,
             mgnMode="isolated",
             lever=lever
         )
-        return self.trade_api.place_order(
+        self._log(f"Set leverage for {pair} to {lever} with response: {result}")
+        response = self.trade_api.place_order(
             instId=pair,
             tdMode="isolated",
             side=side,
@@ -96,6 +99,8 @@ class TradingEngine:
                 }
             ]
         )
+        self._log(f"Placed order for {pair} with response: {response}")
+        return response
     
     def trade(self):
         self._log("Running trade loop")
