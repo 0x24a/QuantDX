@@ -93,9 +93,9 @@ class TradingEngine:
             sz = amount,
             tgtCcy = "quote_ccy",
             ccy="USDT",
-            clOrdId=f"QuantDX{pair.replace('-', '')}",
             attachAlgoOrds = [
                 {
+                    "attachAlgoClOrdId": f"QuantDX{pair.replace('-', '')}",
                     "tpTriggerPx": tp,
                     "tpOrdPx": -1,
                     "slTriggerPx": sl,
