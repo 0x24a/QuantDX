@@ -72,7 +72,7 @@ class TradingEngine:
     
     def close_position(self, pair: str):
         self._log(f"Cancelling unfilled TP/SL order for {pair}")
-        result = self.trade_api.cancel_order(instId=pair, clOrdId=f"QuantDX{pair.replace('-', '')}")
+        result = self.trade_api.cancel_algo_order({"instId": pair, "algoClOrdId": f"QuantDX{pair.replace('-', '')}"}) # i really really hate you okx
         self._log(f"Cancelled unfilled TP/SL order for {pair} with response: {result}")
         data = self.trade_api.close_positions(pair, "isolated", ccy="USDT")
         self._log(f"Closed position {pair} with response: {data}")
