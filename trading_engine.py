@@ -1,3 +1,4 @@
+from typing import Optional
 from ai_engine import AITradingEngine
 from okx.Trade import TradeAPI
 from okx.Account import AccountAPI
@@ -31,9 +32,12 @@ class TradingEngine:
         if not self.config.trading.sandbox:
             print("WARNING: Running in production mode, YOU ARE RISKING REAL MONEY.")
 
-    def _discord_webhook(self, message: str):
+    def _discord_webhook(self, message: Optional[str] = None, json_data: Optional[dict] = None):
         if self.config.discord_webhook:
-            requests.post(self.config.discord_webhook, json={"content": message})
+            if message:
+                requests.post(self.config.discord_webhook, json={"content": message})
+            if json_data:
+                requests.post(self.config.discord_webhook, json=json_data)
 
     def _log(self, message: str):
         os.makedirs("logs", exist_ok=True)
@@ -147,8 +151,9 @@ class TradingEngine:
         decisions = self.ai_engine._get_decisions(prompt)
         self._log(f"Model thoughts: {decisions['think']}")
         self._log(f"Action Description: {decisions['desc']}")
-        action_logs = ""
+        action_logs = []
         action_n = 1
+        discord_ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         for decision in decisions["action"]:
             self._log(f"Running action {action_n}")
             self._log(f"Details: {decision}")
@@ -161,21 +166,49 @@ class TradingEngine:
                     tp=decision["tp"],
                     sl=decision["sl"],
                 )
-                action_logs += f"Action {action_n}:\n> {decision['desc']}\n> {decision['side'].upper()} {decision['pair'].split('-')[0]}\n> Confidence: {decision['confidence']}\n"
+                if decision['side'] == "buy":
+                    action_logs.append({
+                        "title": f"📈 BUY {decision['pair'].split('-')[0]}",
+                        "description": f"{decision['desc']}\nConfidence: {decision['confidence']}",
+                        "color": 4521728,
+                        "timestamp": discord_ts
+                    })
+                elif decision['side'] == "sell":
+                    action_logs.append({
+                        "title": f"📉 SELL {decision['pair'].split('-')[0]}",
+                        "description": f"{decision['desc']}\nConfidence: {decision['confidence']}",
+                        "color": 16711680,
+                        "timestamp": discord_ts
+                    })
                 action_n += 1
             elif decision["type"] == "close_position":
                 self.close_position(pair=decision["pair"])
-                action_logs += f"Action {action_n}:\n> {decision['desc']}\n> CLOSE {decision['pair'].split('-')[0]}\n> Confidence: {decision['confidence']}\n"
+                action_logs.append({
+                    "title": f"❌ CLOSE {decision['pair'].split('-')[0]}",
+                    "description": f"{decision['desc']}\nConfidence: {decision['confidence']}",
+                    "color": 3786171,
+                    "timestamp": discord_ts
+                })
                 action_n += 1
         if action_logs:
-            self._discord_webhook(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                + "\n"
-                + action_logs
-            )
+            self._discord_webhook(json_data={
+                "content": None,
+                "embeds": action_logs,
+                "attachments": []
+            })
 
     def mainloop(self):
-        self._discord_webhook(f"QuantDX V{__VERSION__}(Patch {__PATCH__}) Running!")
+        self._discord_webhook(json_data={
+            "content": None,
+            "embeds": [
+                {
+                "title": "✅ Service Up",
+                "description": f"Version: {__VERSION__} Patch {__PATCH__}",
+                "color": 3786171
+                }
+            ],
+            "attachments": []
+            })
         self._log("Mainloop started")
         while True:
             try:
