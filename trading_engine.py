@@ -67,7 +67,7 @@ class TradingEngine:
                 * float(position.get("last", "0"))
             )
             upnl = position.get("upl", 0.0)
-            upnl_ratio = position.get("uplRatio", 0.0)
+            upnl_ratio = float(position.get("uplRatio", 0.0))*100
             self._log(f"Getting TP/SL data for position {symbol}")
             tp_sl_data = self.trade_api.get_algo_order_details(
                 algoClOrdId=f"QuantDX{symbol.replace('-', '')}"
