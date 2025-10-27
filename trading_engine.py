@@ -53,13 +53,18 @@ class TradingEngine:
             amount = abs(float(position.get("pos","0"))) * float(lever) * float(position.get("last","0"))
             upnl = position.get("upl",0.0)
             upnl_ratio = position.get("uplRatio",0.0)
+            self._log(f"Getting TP/SL data for position {symbol}")
+            tp_sl_data = self.trade_api.get_algo_order_details(algoClOrdId=f"QuantDX{symbol.replace('-', '')}").get('data', [{}])[0]
             positions.append({
                 "symbol": symbol,
                 "side": side,
                 "lever": lever,
                 "amount": amount,
                 "upnl": upnl,
-                "upnl_ratio": upnl_ratio
+                "upnl_ratio": upnl_ratio,
+                "tp": tp_sl_data.get("tpTriggerPx", None),
+                "sl": tp_sl_data.get("slTriggerPx", None),
+                "open_time": datetime.datetime.fromtimestamp(int(tp_sl_data.get("cTime", 0)) / 1000.0, datetime.timezone.utc).astimezone(datetime.timezone(datetime.timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S")
             })
         return positions
     

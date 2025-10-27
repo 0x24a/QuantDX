@@ -3,6 +3,7 @@ from market_data import get_crypto_metrics
 from openai import OpenAI
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from json import loads
+from datetime import datetime
 from retrying import retry
 
 class AITradingEngine:
@@ -25,7 +26,8 @@ class AITradingEngine:
             positions=positions,
             balance=balance,
             available_symbols=self.config.trading.pairs,
-            market_datas=market_datas
+            market_datas=market_datas,
+            current_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
     
     @retry
