@@ -9,7 +9,7 @@ import time
 import os
 
 __VERSION__ = "2.1.0"
-__PATCH__ = 1
+__PATCH__ = 2
 
 
 class TradingEngine:
