@@ -8,6 +8,9 @@ import traceback
 import time
 import os
 
+__VERSION__ = "2.1.0"
+__PATCH__ = 1
+
 
 class TradingEngine:
     def __init__(self, config: Config = load_config_from_file()):
@@ -172,7 +175,7 @@ class TradingEngine:
             )
 
     def mainloop(self):
-        self._discord_webhook("QuantDX V2 Running!")
+        self._discord_webhook(f"QuantDX V{__VERSION__}(Patch {__PATCH__}) Running!")
         self._log("Mainloop started")
         while True:
             try:
