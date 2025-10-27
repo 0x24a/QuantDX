@@ -70,14 +70,14 @@ def get_crypto_metrics(symbol):
         else:
             price_change_7d = None
         
-        sma_7 = float(np.mean(close_prices[-7:])) if len(close_prices) >= 7 else None
-        sma_14 = float(np.mean(close_prices[-14:])) if len(close_prices) >= 14 else None
+        sma_7 = np.mean(close_prices[-7:]) if len(close_prices) >= 7 else None
+        sma_14 = np.mean(close_prices[-14:]) if len(close_prices) >= 14 else None
         rsi_14 = calculate_rsi(close_prices, period=14) if len(close_prices) >= 15 else None
         
         return {
             'symbol': symbol,
             'current_price': current_price,
-            'total_volume': round(total_volume, 5),
+            'total_volume': total_volume,
             'price_change_24h': round(price_change_24h, 5),
             'price_change_24h_percentage': round(price_change_24h / current_price * 100, 5),
             'price_change_7d': round(price_change_7d, 5) if price_change_7d else None,
