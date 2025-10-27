@@ -3,7 +3,7 @@ Available (non-margin) funds: {{ balance }} USDT
 Current time: {{ current_time }}
 Your current positions:
 {% for position in positions %}
-{{position['symbol']}}: {{ position['side'] }}, leverage {{ position['lever'] }}x, position size {{position['amount']}} USDT, unrealized PnL {{ position['upnl'] }} USDT({{ position['upnl_ratio'] }}%), TP {{ position['tp'] }}, SL {{ position['sl'] }}, opened @ {{ position['open_time'] }}
+{{position['symbol']}}: {{ position['side'] }}, leverage {{ position['lever'] }}x, position size {{position['amount']}} USDT(after leverage), unrealized PnL {{ position['upnl'] }} USDT({{ position['upnl_ratio'] }}%), TP {{ position['tp'] }}, SL {{ position['sl'] }}, opened @ {{ position['open_time'] }}
 {% else %}
 (No positions)
 {% endfor %}
