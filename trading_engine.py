@@ -1,16 +1,18 @@
-from typing import Optional
-from ai_engine import AITradingEngine
-from okx.Trade import TradeAPI
-from okx.Account import AccountAPI
-from config import load_config_from_file, Config
-import requests
 import datetime
-import traceback
-import time
 import os
+import time
+import traceback
+from typing import Optional
+
+import requests
+from okx.Account import AccountAPI
+from okx.Trade import TradeAPI
+
+from ai_engine import AITradingEngine
+from config import Config, load_config_from_file
 
 __VERSION__ = "2.1.0"
-__PATCH__ = 3
+__PATCH__ = 4
 
 
 class TradingEngine:
@@ -203,7 +205,7 @@ class TradingEngine:
             "embeds": [
                 {
                 "title": "✅ Service Up",
-                "description": f"Version: {__VERSION__} Patch {__PATCH__}",
+                "description": f"Version: {__VERSION__} patch {__PATCH__}",
                 "color": 3786171
                 }
             ],
