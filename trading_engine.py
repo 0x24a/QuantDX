@@ -7,6 +7,7 @@ from typing import Optional
 import requests
 from okx.Account import AccountAPI
 from okx.Trade import TradeAPI
+from market_data import get_pair_price
 
 from ai_engine import AITradingEngine
 from config import Config, load_config_from_file
@@ -121,15 +122,14 @@ class TradingEngine:
             instId=pair, mgnMode="isolated", lever=lever
         )
         self._log(f"Set leverage for {pair} to {lever} with response: {result}")
-        response = self.trade_api.place_order(
-            instId=pair,
-            tdMode="isolated",
-            side=side,
-            ordType="market",
-            sz=amount,
-            tgtCcy="quote_ccy",
-            ccy="USDT",
-            attachAlgoOrds=[
+        params = {
+            "instId": pair,
+            "tdMode": "isolated",
+            "side": side,
+            "ordType": "market",
+            "sz": str(amount if side == "buy" else float(amount)/float(get_pair_price(pair))),
+            "ccy": "USDT",
+            "attachAlgoOrds": [
                 {
                     "attachAlgoClOrdId": f"QuantDX{pair.replace('-', '')}",
                     "tpTriggerPx": tp,
@@ -138,7 +138,9 @@ class TradingEngine:
                     "slOrdPx": -1,
                 }
             ],
-        )
+        }
+        self._log(f"Order parameters: {params}")
+        response = self.trade_api.place_order(**params)
         self._log(f"Placed order for {pair} with response: {response}")
         return response
 
