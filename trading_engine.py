@@ -14,7 +14,7 @@ from ai_engine import AITradingEngine
 from config import Config, load_config_from_file
 
 __VERSION__ = "2.1.0"
-__PATCH__ = 4
+__PATCH__ = "π"
 
 
 class TradingEngine:
