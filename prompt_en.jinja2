@@ -22,6 +22,22 @@ RSI14: {{ symbol['rsi_14'] }}
 
 {% endfor %}
 
+Below is your history decisions in the last 24 hours:
+{% if not histories %}
+No history decisions in the last 24 hours.
+{% else %}
+{% for history in histories %}
+{{ history['time_formatted'] }}
+{% if history['type'] == "open_position" %}
+{{ history['side'] }} {{ history['pair'] }} AMOUNT {{ history['amount'] }} LEVER {{ history['lever'] }}x TP {{ history['tp'] }} SL {{ history['sl'] }} 
+{% elif history['type'] == "close_position" %}
+CLOSE {{ history['pair'] }} PnL% {{ history['pnl'] }}
+{% else %}
+<UNKNOWN OPERATION>
+{% endif %}
+
+{% endfor %}
+
 # Output Format
 Output format should be valid JSON.
 Output order:
