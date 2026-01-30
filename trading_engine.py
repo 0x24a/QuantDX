@@ -113,7 +113,7 @@ class TradingEngine:
         pnl = (
             self.account_api.get_positions(instId=pair)
             .get("data", [{}])[0]
-            .get("pnl", "<unknown>")
+            .get("uplRatio", "<unknown>")
         )
         self._log(f"Cancelling unfilled TP/SL order for {pair}")
         result = self.trade_api.cancel_algo_order(
