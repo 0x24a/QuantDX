@@ -29,9 +29,9 @@ RSI14: {{ symbol['rsi_14'] }}
 {% for history in histories %}
 {{ history['time_formatted'] }}
 {% if history['type'] == "open_position" %}
-{{ history['side'] }} {{ history['pair'] }} 仓位大小 {{ history['amount'] }} 杠杆 {{ history['lever'] }}x 止盈 {{ history['tp'] }} 止损 {{ history['sl'] }} 
+{{ history['data']['side'] }} {{ history['data']['pair'] }} 仓位大小 {{ history['data']['amount'] }} 杠杆 {{ history['data']['lever'] }}x 止盈 {{ history['data']['tp'] }} 止损 {{ history['data']['sl'] }} 
 {% elif history['type'] == "close_position" %}
-关闭 {{ history['pair'] }} 仓位 PnL% {{ history['pnl'] }}
+关闭 {{ history['data']['pair'] }} 仓位 PnL% {{ history['data']['pnl'] }}
 {% else %}
 <未知操作>
 {% endif %}

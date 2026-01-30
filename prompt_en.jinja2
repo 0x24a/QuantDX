@@ -29,9 +29,9 @@ No history decisions in the last 24 hours.
 {% for history in histories %}
 {{ history['time_formatted'] }}
 {% if history['type'] == "open_position" %}
-{{ history['side'] }} {{ history['pair'] }} AMOUNT {{ history['amount'] }} LEVER {{ history['lever'] }}x TP {{ history['tp'] }} SL {{ history['sl'] }} 
+{{ history['data']['side'] }} {{ history['data']['pair'] }} AMOUNT {{ history['data']['amount'] }} LEVER {{ history['data']['lever'] }}x TP {{ history['data']['tp'] }} SL {{ history['data']['sl'] }} 
 {% elif history['type'] == "close_position" %}
-CLOSE {{ history['pair'] }} PnL% {{ history['pnl'] }}
+CLOSE {{ history['data']['pair'] }} PnL% {{ history['data']['pnl'] }}
 {% else %}
 <UNKNOWN OPERATION>
 {% endif %}
