@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import time
 import traceback
@@ -35,7 +36,9 @@ class TradingEngine:
         if not self.config.trading.sandbox:
             print("WARNING: Running in production mode, YOU ARE RISKING REAL MONEY.")
 
-    def _discord_webhook(self, message: Optional[str] = None, json_data: Optional[dict] = None):
+    def _discord_webhook(
+        self, message: Optional[str] = None, json_data: Optional[dict] = None
+    ):
         if self.config.discord_webhook:
             if message:
                 requests.post(self.config.discord_webhook, json={"content": message})
@@ -74,7 +77,7 @@ class TradingEngine:
                 * float(position.get("last", "0"))
             )
             upnl = position.get("upl", 0.0)
-            upnl_ratio = float(position.get("uplRatio", 0.0))*100
+            upnl_ratio = float(position.get("uplRatio", 0.0)) * 100
             self._log(f"Getting TP/SL data for position {symbol}")
             tp_sl_data = self.trade_api.get_algo_order_details(
                 algoClOrdId=f"QuantDX{symbol.replace('-', '')}"
@@ -106,6 +109,12 @@ class TradingEngine:
         return 0.0
 
     def close_position(self, pair: str):
+        self._log("Fetching PnL")
+        pnl = (
+            self.account_api.get_positions(instId=pair)
+            .get("data", [{}])
+            .get("pnl", "<unknown>")
+        )
         self._log(f"Cancelling unfilled TP/SL order for {pair}")
         result = self.trade_api.cancel_algo_order(
             [{"instId": pair, "algoClOrdId": f"QuantDX{pair.replace('-', '')}"}]
@@ -113,7 +122,22 @@ class TradingEngine:
         self._log(f"Cancelled unfilled TP/SL order for {pair} with response: {result}")
         data = self.trade_api.close_positions(pair, "isolated", ccy="USDT")
         self._log(f"Closed position {pair} with response: {data}")
+        self.write_trade_log("close_position", {"pair": pair, "pnl": pnl})
         return data
+
+    def write_trade_log(self, kind: str, object: dict):
+        if not os.path.exists("trading_logs.jsonl"):
+            with open("trading_logs.jsonl", "w+") as f:
+                pass
+        data = {"kind": kind, "time": int(time.time() * 1000), "data": object}
+        self._log(f"Writing trading log: {data}")
+        with open("trading_logs.jsonl", "a") as f:
+            f.write(json.dumps(data) + "\n")
+
+    def read_trade_log(self, after: int):
+        with open("trading_logs.jsonl", "r") as f:
+            lines = f.readlines()
+        return [json.loads(line) for line in lines if json.loads(line)["time"] > after]
 
     def open_position(
         self, pair: str, side: str, amount: float, lever: float, tp: float, sl: float
@@ -127,7 +151,9 @@ class TradingEngine:
             "tdMode": "isolated",
             "side": side,
             "ordType": "market",
-            "sz": str(amount if side == "buy" else float(amount)/float(get_pair_price(pair))),
+            "sz": str(
+                amount if side == "buy" else float(amount) / float(get_pair_price(pair))
+            ),
             "ccy": "USDT",
             "attachAlgoOrds": [
                 {
@@ -142,6 +168,17 @@ class TradingEngine:
         self._log(f"Order parameters: {params}")
         response = self.trade_api.place_order(**params)
         self._log(f"Placed order for {pair} with response: {response}")
+        self.write_trade_log(
+            "open_position",
+            {
+                "pair": pair,
+                "side": side,
+                "amount": amount,
+                "lever": lever,
+                "tp": tp,
+                "sl": sl,
+            },
+        )
         return response
 
     def trade(self):
@@ -157,7 +194,9 @@ class TradingEngine:
         self._log(f"Action Description: {decisions['desc']}")
         action_logs = []
         action_n = 1
-        discord_ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        discord_ts = datetime.datetime.now(datetime.timezone.utc).strftime(
+            "%Y-%m-%dT%H:%M:%S.%fZ"
+        )
         for decision in decisions["action"]:
             self._log(f"Running action {action_n}")
             self._log(f"Details: {decision}")
@@ -170,49 +209,55 @@ class TradingEngine:
                     tp=decision["tp"],
                     sl=decision["sl"],
                 )
-                if decision['side'] == "buy":
-                    action_logs.append({
-                        "title": f"📈 BUY {decision['pair'].split('-')[0]}",
-                        "description": f"{decision['desc']}\nConfidence: {decision['confidence']}",
-                        "color": 4521728,
-                        "timestamp": discord_ts
-                    })
-                elif decision['side'] == "sell":
-                    action_logs.append({
-                        "title": f"📉 SELL {decision['pair'].split('-')[0]}",
-                        "description": f"{decision['desc']}\nConfidence: {decision['confidence']}",
-                        "color": 16711680,
-                        "timestamp": discord_ts
-                    })
+                if decision["side"] == "buy":
+                    action_logs.append(
+                        {
+                            "title": f"📈 BUY {decision['pair'].split('-')[0]}",
+                            "description": f"{decision['desc']}\nConfidence: {decision['confidence']}",
+                            "color": 4521728,
+                            "timestamp": discord_ts,
+                        }
+                    )
+                elif decision["side"] == "sell":
+                    action_logs.append(
+                        {
+                            "title": f"📉 SELL {decision['pair'].split('-')[0]}",
+                            "description": f"{decision['desc']}\nConfidence: {decision['confidence']}",
+                            "color": 16711680,
+                            "timestamp": discord_ts,
+                        }
+                    )
                 action_n += 1
             elif decision["type"] == "close_position":
                 self.close_position(pair=decision["pair"])
-                action_logs.append({
-                    "title": f"❌ CLOSE {decision['pair'].split('-')[0]}",
-                    "description": f"{decision['desc']}\nConfidence: {decision['confidence']}",
-                    "color": 3786171,
-                    "timestamp": discord_ts
-                })
+                action_logs.append(
+                    {
+                        "title": f"❌ CLOSE {decision['pair'].split('-')[0]}",
+                        "description": f"{decision['desc']}\nConfidence: {decision['confidence']}",
+                        "color": 3786171,
+                        "timestamp": discord_ts,
+                    }
+                )
                 action_n += 1
         if action_logs:
-            self._discord_webhook(json_data={
-                "content": None,
-                "embeds": action_logs,
-                "attachments": []
-            })
+            self._discord_webhook(
+                json_data={"content": None, "embeds": action_logs, "attachments": []}
+            )
 
     def mainloop(self):
-        self._discord_webhook(json_data={
-            "content": None,
-            "embeds": [
-                {
-                "title": "✅ Service Up",
-                "description": f"Version: {__VERSION__} patch {__PATCH__}",
-                "color": 3786171
-                }
-            ],
-            "attachments": []
-            })
+        self._discord_webhook(
+            json_data={
+                "content": None,
+                "embeds": [
+                    {
+                        "title": "✅ Service Up",
+                        "description": f"Version: {__VERSION__} patch {__PATCH__}",
+                        "color": 3786171,
+                    }
+                ],
+                "attachments": [],
+            }
+        )
         self._log("Mainloop started")
         while True:
             try:
