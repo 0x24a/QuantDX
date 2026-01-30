@@ -112,7 +112,7 @@ class TradingEngine:
         self._log("Fetching PnL")
         pnl = (
             self.account_api.get_positions(instId=pair)
-            .get("data", [{}])
+            .get("data", [{}])[0]
             .get("pnl", "<unknown>")
         )
         self._log(f"Cancelling unfilled TP/SL order for {pair}")
