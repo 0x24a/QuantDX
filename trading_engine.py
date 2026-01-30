@@ -132,7 +132,7 @@ class TradingEngine:
         data = {"kind": kind, "time": int(time.time() * 1000), "time_formatted": datetime.datetime.fromtimestamp(int(time.time())).strftime('%Y-%m-%d %H:%M:%S'), "data": object}
         self._log(f"Writing trading log: {data}")
         with open("trading_logs.jsonl", "a") as f:
-            f.write(json.dumps(data) + "\n")
+            f.write(json.dumps(data, ensure_ascii=False) + "\n")
 
     def read_trade_log(self, after: int):
         if not os.path.exists("trading_logs.jsonl"):
