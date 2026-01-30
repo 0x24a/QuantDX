@@ -135,6 +135,9 @@ class TradingEngine:
             f.write(json.dumps(data) + "\n")
 
     def read_trade_log(self, after: int):
+        if not os.path.exists("trading_logs.jsonl"):
+            with open("trading_logs.jsonl", "w+") as f:
+                f.write("")
         with open("trading_logs.jsonl", "r") as f:
             lines = f.readlines()
         return [json.loads(line) for line in lines if json.loads(line)["time"] > after]
