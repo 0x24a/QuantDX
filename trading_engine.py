@@ -85,7 +85,7 @@ class TradingEngine:
             positions.append(
                 {
                     "symbol": symbol,
-                    "side": side,
+                    "side": side.upper(),
                     "lever": lever,
                     "amount": amount,
                     "upnl": upnl,

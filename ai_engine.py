@@ -22,7 +22,7 @@ class AITradingEngine:
         market_datas = []
         for pair in self.config.trading.pairs:
             market_datas.append(get_crypto_metrics(pair))
-        return self.jinja2.get_template(self.config.prompt).render(
+        prompt = self.jinja2.get_template(self.config.prompt).render(
             positions=positions,
             balance=balance,
             available_symbols=self.config.trading.pairs,
@@ -30,6 +30,7 @@ class AITradingEngine:
             current_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             histories=histories,
         )
+        return prompt
 
     @retry
     def _get_decisions(self, prompt: str) -> dict:
