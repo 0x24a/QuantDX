@@ -129,7 +129,7 @@ class TradingEngine:
         if not os.path.exists("trading_logs.jsonl"):
             with open("trading_logs.jsonl", "w+") as f:
                 pass
-        data = {"kind": kind, "time": int(time.time() * 1000), "data": object}
+        data = {"kind": kind, "time": int(time.time() * 1000), "time_formatted": datetime.datetime.fromtimestamp(int(time.time())).strftime('%Y-%m-%d %H:%M:%S'), "data": object}
         self._log(f"Writing trading log: {data}")
         with open("trading_logs.jsonl", "a") as f:
             f.write(json.dumps(data) + "\n")
@@ -187,7 +187,8 @@ class TradingEngine:
         self._log(f"Got balance: {balance}")
         positions = self._get_positions()
         self._log(f"Got positions: {positions}")
-        prompt = self.ai_engine._render_prompt(balance, positions)
+        histories = self.read_trade_log(after=int((time.time() - 86400)*1000))
+        prompt = self.ai_engine._render_prompt(balance, positions, histories)
         self._log("Requesting decisions")
         decisions = self.ai_engine._get_decisions(prompt)
         self._log(f"Model thoughts: {decisions['think']}")

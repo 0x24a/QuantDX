@@ -18,7 +18,7 @@ class AITradingEngine:
             loader=FileSystemLoader("."), autoescape=select_autoescape()
         )
 
-    def _render_prompt(self, balance: float, positions: list[dict] = []) -> str:
+    def _render_prompt(self, balance: float, positions: list[dict] = [], histories: list[dict] = []) -> str:
         market_datas = []
         for pair in self.config.trading.pairs:
             market_datas.append(get_crypto_metrics(pair))
@@ -28,6 +28,7 @@ class AITradingEngine:
             available_symbols=self.config.trading.pairs,
             market_datas=market_datas,
             current_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            histories=histories,
         )
 
     @retry
