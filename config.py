@@ -16,6 +16,7 @@ class LLMConfig(BaseModel):
     provider: str
     api_key: str
     model: str
+    trading_style: str = "(not present)"
 
 
 class Config(BaseModel):

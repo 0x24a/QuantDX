@@ -29,6 +29,7 @@ class AITradingEngine:
             market_datas=market_datas,
             current_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             histories=histories,
+            trading_style=self.config.llm.trading_style
         )
         return prompt
 
