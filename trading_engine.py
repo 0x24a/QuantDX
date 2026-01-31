@@ -115,6 +115,8 @@ class TradingEngine:
             .get("data", [{}])[0]
             .get("uplRatio", "<unknown>")
         )
+        if pnl != "<unknown>":
+            pnl = float(pnl) * 100
         self._log(f"Cancelling unfilled TP/SL order for {pair}")
         result = self.trade_api.cancel_algo_order(
             [{"instId": pair, "algoClOrdId": f"QuantDX{pair.replace('-', '')}"}]
